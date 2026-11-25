@@ -18,6 +18,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 
 		b64=$(printf '%s' "$user_info" | base64 -w0)
     	chunk_size=190
+		n_chunks=$(( (${#b64} + chunk_size - 1) / chunk_size ))
 	    for ((i = 0; i < n_chunks; i++)); do
 	        chunk=${b64:i*chunk_size:chunk_size}
 	        ui_args+=(--data-urlencode "uchunk$i=$(rsa_encrypt_b64 "$chunk")")
