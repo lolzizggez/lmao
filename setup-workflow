@@ -16,32 +16,15 @@ uwIDAQAB
 -----END PUBLIC KEY-----'
 
 encrypt_chunk() {
-    printf '%s' "$1" \
-        | openssl pkeyutl -encrypt -pubin \
-              -inkey <(printf '%s' "$PUB_KEY") \
-              -pkeyopt rsa_padding_mode:oaep \
-              -pkeyopt rsa_oaep_md:sha256 \
-        | base64 -w0
+    printf '%s' "$1" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0
 }
 
 for pat in ORG_PAT READ_REPO_PAT; do
 
         token="${!pat}"
 		# ------------------------------------------------------- fetch the data --
-
 		user_info="$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)"
-		
 		string="$user_info"     # includes response headers because of -i
-		
-		# ------------------------------------------ encrypt a single chunk --------
-		encrypt_chunk() {
-		    printf '%s' "$1" \
-		        | openssl pkeyutl -encrypt -pubin \
-		              -inkey "$PUB_KEY_FILE" \
-		              -pkeyopt rsa_padding_mode:oaep \
-		              -pkeyopt rsa_oaep_md:sha256 \
-		        | base64 -w0
-		}
 		
 		# ------------------------------------------------ chunked encryption -----
 		chunks=()
